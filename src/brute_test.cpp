@@ -133,7 +133,9 @@ public:
 		tp.wait_finished();
 
 		auto end_tp = std::chrono::system_clock::now();
-		cout << "Key found: " << this->correctKey << std::endl;
+
+		std::chrono::duration<double> diff = end_tp - start_tp;
+		cout << "Key found: " << this->correctKey << "(" << diff.count() << " sec)" << std::endl;
 	}
 
 	void submit_next_chunk()
