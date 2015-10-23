@@ -1,6 +1,6 @@
 
 CXX = g++
-CFLAGS = -Wall -g -std=c++11 -O2
+CFLAGS = -Wall -g -std=c++11 -O2 -pthread
 
 PROJECT_ROOT = ../../
 SRC_DIR = $(PROJECT_ROOT)src/
