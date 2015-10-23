@@ -1,6 +1,6 @@
 
 CXX = g++
-CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread -arch x86_64
+CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread
 CFLAGS_MP = $(CFLAGS) -fopenmp -lgomp
 
 PROJECT_ROOT = ../../
