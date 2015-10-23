@@ -137,7 +137,8 @@ private:
 		int_key.resize(alpha_key.size());
 		for(unsigned i = 0; i < alpha_key.size(); ++i)
 		{
-			int_key[i] = std::distance(alphabet.begin(), std::find(alphabet.begin(), alphabet.end(), alpha_key[i]));
+			//int_key[i] = std::distance(alphabet.begin(), std::find(alphabet.begin(), alphabet.end(), alpha_key[i]));
+			int_key[i] = alphabet.find(alpha_key[i]);
 		}
 	}
 
