@@ -156,4 +156,60 @@ private:
 	const unsigned radix;
 };
 
+struct bf_task
+{
+	unsigned key_length, id;
+	size_t first, last;
+
+	friend std::ostream & operator<<(std::ostream & os, const bf_task & bft)
+	{
+		return os << "#" << bft.id << " length=" << bft.key_length << ", " << bft.first << "->" << bft.last;
+	}
+};
+
+template<typename B>
+struct chunk_generator
+{
+	using bruteforcer_t = B;
+	using uint_t = typename bruteforcer_t::uint_t;
+
+	chunk_generator(const bruteforcer_t & _bf)
+		:bf(_bf), cur_length(1), cur_idx(0), chunkId(0), cur_count(0)
+	{
+
+	}
+
+	bf_task next_chunk()
+	{
+		std::lock_guard<std::mutex> grd(mtx);
+
+		static const uint_t max_chunk_size = 10000000U;
+		const uint_t key_count = bf.keys_of_length(cur_length);
+
+		
+		uint_t chunk_size = min(key_count - cur_count, max_chunk_size);
+		
+		bf_task new_task;
+		new_task.id = chunkId++;
+		new_task.key_length = cur_length;
+		new_task.first = cur_idx;
+		new_task.last = cur_idx + chunk_size;
+
+		cur_count += chunk_size;
+		cur_idx += chunk_size;
+ 
+		//cout << "length=" << cur_length << ", cur_count=" << cur_count << ", key_count=" << key_count << std::endl;
+		if(cur_count == key_count)
+			++cur_length;
+
+		return std::move(new_task);
+	}
+
+	const bruteforcer_t & bf;
+	unsigned cur_length;
+	uint_t cur_idx, cur_count;
+	std::mutex mtx;
+	unsigned chunkId;
+};
+
 #endif

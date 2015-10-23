@@ -1,27 +1,43 @@
 
 CXX = g++
-CFLAGS = -Wall -g -std=c++11 -O2 -pthread
+CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread -arch x86_64
+CFLAGS_MP = $(CFLAGS) -fopenmp -lgomp
 
 PROJECT_ROOT = ../../
 SRC_DIR = $(PROJECT_ROOT)src/
 BIN_DIR = $(PROJECT_ROOT)bin/
+
 SRC_TEST = $(SRC_DIR)brute_test.cpp
+SRC_MD5 = $(SRC_DIR)brute_md5.cpp $(SRC_DIR)md5.cpp
+SRC_MD5_MP = $(SRC_DIR)brute_md5_mp.cxx $(SRC_DIR)md5.cpp
 
 OBJS_TEST = $(SRC_TEST:.cpp=.o)
+OBJS_MD5 = $(SRC_MD5:.cpp=.o)
+OBJS_MD5_MP = $(SRC_MD5:.cxx=.o)
 
 TESTS_BIN = brute_test
+BRUTE_MD5_BIN = brute_md5
+BRUTE_MD5_MP_BIN = brute_md5_mp
 
 .PHONY: depend clean
 
-all:	$(TESTS_BIN)
+all:	$(TESTS_BIN) $(BRUTE_MD5_BIN) $(BRUTE_MD5_MP_BIN)
 	@echo  Simple compiler named mycc has been compiled
 
 $(TESTS_BIN): $(OBJS_TEST) 
 	$(CXX) $(CFLAGS) -o $(BIN_DIR)$(TESTS_BIN) $(OBJS_TEST)
-	@echo compiling
+
+$(BRUTE_MD5_BIN): $(OBJS_MD5)
+	$(CXX) $(CFLAGS_MP) -o $(BIN_DIR)$(BRUTE_MD5_BIN) $(OBJS_MD5)
+
+$(BRUTE_MD5_MP_BIN): $(SRC_DIR)md5.o
+	$(CXX) $(CFLAGS_MP) -c $(SRC_DIR)brute_md5_mp.cpp -o $(SRC_DIR)brute_md5_mp.o
+	$(CXX) $(CFLAGS_MP) -o $(BIN_DIR)$(BRUTE_MD5_MP_BIN) $(SRC_DIR)brute_md5_mp.o $(SRC_DIR)md5.o
+
 
 .cpp.o:
-	$(CXX) $(CFLAGS) -c $<  -o $@
+	$(CXX) $(CFLAGS_MP) -c $<  -o $@
+
 
 clean:
 	$(RM) $(SRC_DIR)/*.o *~ $(MAIN)
