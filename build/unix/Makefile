@@ -24,7 +24,7 @@ $(TESTS_BIN): $(OBJS_TEST)
 	$(CXX) $(CFLAGS) -c $<  -o $@
 
 clean:
-	$(RM) *.o *~ $(MAIN)
+	$(RM) $(SRC_DIR)/*.o *~ $(MAIN)
 
 depend: $(SRC_TEST)
 	makedepend $(INCLUDES) $^
