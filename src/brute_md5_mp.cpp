@@ -4,6 +4,7 @@
 #include "md5.h"
 #include "engine.h"
 #include <omp.h>
+#include <atomic>
 
 struct md5_crypter
 {
@@ -23,8 +24,15 @@ int main(int argc, char ** argv)
 {
 	omp_set_num_threads(4);
 
+	std::atomic<unsigned> val(0);
+
 #pragma omp parallel
-	printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+
+	for(unsigned i = 0; i < 10; ++i)
+	{
+		cout << "thread " << omp_get_thread_num() << '/' << omp_get_num_threads() << ":" << val++ << std::endl;
+	}
+	
 
 	return 0;
 }
