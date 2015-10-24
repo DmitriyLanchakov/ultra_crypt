@@ -14,8 +14,7 @@ public:
 
 	openmp_engine(bf_t & p_bf)
 		:_Base(&p_bf)
-	{
-		cout << "Starting OPENMP engine (" << omp_get_num_threads() << " threads)" << std::endl;
+	{	
 	}
 
 	virtual void search() override
@@ -24,6 +23,7 @@ public:
 
 		std::atomic<bool> found(false);
 #pragma omp parallel
+		cout << "Starting OPENMP parallel search (" << omp_get_num_threads() << " threads)" << std::endl;
 		do
 		{
 			typename bf_t::key_t found_key;
