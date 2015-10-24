@@ -49,6 +49,59 @@ void linear_brute_force(const B & bforcer)
 	monitor_thread.join();
 }
 
+
+template<typename B>
+class bf_engine_base
+{
+public:
+	using bf_t = B;
+
+	bf_engine_base(bf_t * p_bf)
+		:pBF(p_bf)
+	{}
+
+	void operator()()
+	{
+		auto start_tp = std::chrono::system_clock::now();
+		search();
+		auto end_tp = std::chrono::system_clock::now();
+
+		std::chrono::duration<double> diff = end_tp - start_tp;
+		cout << "Key found: " << this->correctKey << "(" << diff.count() << " sec)" << std::endl;
+	}
+
+	virtual void search() = 0;
+
+	typename B::key_t correctKey;
+	bf_t * pBF;
+};
+
+template<typename B>
+class serial_engine : public bf_engine_base<B>
+{
+public:
+	using bf_t = B;
+	using _Base = bf_engine_base<B>;
+
+	serial_engine(bf_t & p_bf)
+		:_Base(&p_bf)
+	{}
+
+	virtual void search() override
+	{
+		chunk_generator<bf_t> gen(*this->pBF);
+
+		bool found = false;
+
+		do
+		{
+			auto cur_chunk = gen.next_chunk();
+			found = (*this->pBF)(cur_chunk.key_length, cur_chunk.first, cur_chunk.last, this->correctKey);
+			cout << "Processed " << cur_chunk << " (res=" << found << ")" << std::endl;
+		}while(!found);
+	}
+};
+
 template<typename B>
 class multithread_engine
 {
@@ -58,7 +111,6 @@ public:
 	multithread_engine(bf_t & _bf)
 		:gen(_bf), bf(_bf), found(false)
 	{}
-
 
 	void operator()()
 	{
@@ -101,5 +153,12 @@ private:
 	std::atomic<bool> found;
 	typename B::key_t correctKey;
 };
+
+
+//template<typename T>
+//using serial_eng = serial_engine<bf_engine<<T>>>;
+
+//template<typename T>
+//using multithread_engine = bf_engine<multithread_engine_base<T>>;
 
 #endif

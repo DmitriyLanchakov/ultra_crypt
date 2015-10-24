@@ -2,8 +2,7 @@
 
 #include "brute_forcer.h"
 #include "md5.h"
-#include "engine.h"
-#include <omp.h>
+#include "openmp_engine.h"
 #include <atomic>
 
 struct md5_crypter
@@ -26,13 +25,19 @@ int main(int argc, char ** argv)
 
 	std::atomic<unsigned> val(0);
 
+	std::string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_";
+	bf_t bforcer("b781cbb29054db12f88f08c6e161c199", alphabet);
+
+	openmp_engine<bf_t> eng(bforcer);
+	eng();
+/*
 #pragma omp parallel
 
 	for(unsigned i = 0; i < 10; ++i)
 	{
 		cout << "thread " << omp_get_thread_num() << '/' << omp_get_num_threads() << ":" << val++ << std::endl;
 	}
-	
+	*/
 
 	return 0;
 }
