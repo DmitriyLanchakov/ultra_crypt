@@ -1,5 +1,6 @@
 
 CXX = g++
+MPICC = mpic++
 CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread
 CFLAGS_MP = $(CFLAGS) -fopenmp -lgomp
 
@@ -30,10 +31,12 @@ $(TESTS_BIN): $(OBJS_TEST)
 $(BRUTE_MD5_BIN): $(OBJS_MD5)
 	$(CXX) $(CFLAGS_MP) -o $(BIN_DIR)$(BRUTE_MD5_BIN) $(OBJS_MD5)
 
-$(BRUTE_MD5_MP_BIN): $(SRC_DIR)md5.o
-	$(CXX) $(CFLAGS_MP) -c $(SRC_DIR)brute_md5_mp.cpp -o $(SRC_DIR)brute_md5_mp.o
-	$(CXX) $(CFLAGS_MP) -o $(BIN_DIR)$(BRUTE_MD5_MP_BIN) $(SRC_DIR)brute_md5_mp.o $(SRC_DIR)md5.o
+$(BRUTE_MD5_MP_BIN): $(SRC_DIR)md5_mp.o
+	$(MPICC) $(CFLAGS) -c $(SRC_DIR)brute_md5_mp.cpp -o $(SRC_DIR)brute_md5_mp.o
+	$(MPICC) $(CFLAGS) -o $(BIN_DIR)$(BRUTE_MD5_MP_BIN) $(SRC_DIR)brute_md5_mp.o $(SRC_DIR)md5.o
 
+$(SRC_DIR)md5_mp.o:
+	$(MPICC) $(CFLAGS) -c $(SRC_DIR)md5.cpp  -o md5_mp.o:
 
 .cpp.o:
 	$(CXX) $(CFLAGS_MP) -c $<  -o $@

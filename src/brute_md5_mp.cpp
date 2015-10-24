@@ -21,7 +21,7 @@ using bf_t = brute_forcer<md5_crypter>;
 
 int main(int argc, char ** argv)
 {
-	omp_set_num_threads(4);
+	//omp_set_num_threads(4);
 
 	std::atomic<unsigned> val(0);
 
@@ -38,6 +38,7 @@ int main(int argc, char ** argv)
 		cout << "thread " << omp_get_thread_num() << '/' << omp_get_num_threads() << ":" << val++ << std::endl;
 	}
 	*/
+
 
 	return 0;
 }
