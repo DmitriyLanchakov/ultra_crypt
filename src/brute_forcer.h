@@ -159,13 +159,17 @@ private:
 
 struct bf_task
 {
-	unsigned key_length, id;
-	size_t first, last;
+	bf_task()
+		:id(0)
+	{}
 
 	friend std::ostream & operator<<(std::ostream & os, const bf_task & bft)
 	{
 		return os << "#" << bft.id << " length=" << bft.key_length << ", " << bft.first << "->" << bft.last;
 	}
+
+	unsigned key_length, id;
+	size_t first, last;
 };
 
 template<typename B>
@@ -175,7 +179,7 @@ struct chunk_generator
 	using uint_t = typename bruteforcer_t::uint_t;
 
 	chunk_generator(const bruteforcer_t & _bf)
-		:bf(_bf), cur_length(1), cur_idx(0), chunkId(0), cur_count(0)
+		:bf(_bf), cur_length(1), cur_idx(0), chunkId(1), cur_count(0)
 	{
 
 	}

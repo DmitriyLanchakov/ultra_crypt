@@ -63,14 +63,17 @@ public:
 	void operator()()
 	{
 		auto start_tp = std::chrono::system_clock::now();
-		search();
+		bool r = search();
 		auto end_tp = std::chrono::system_clock::now();
 
-		std::chrono::duration<double> diff = end_tp - start_tp;
-		cout << "Key found: " << this->correctKey << "(" << diff.count() << " sec)" << std::endl;
+		if(r)
+		{
+			std::chrono::duration<double> diff = end_tp - start_tp;
+			cout << "Key found: " << this->correctKey << "(" << diff.count() << " sec)" << std::endl;
+		}
 	}
 
-	virtual void search() = 0;
+	virtual bool search() = 0;
 
 	typename B::key_t correctKey;
 	bf_t * pBF;
@@ -87,7 +90,7 @@ public:
 		:_Base(&p_bf)
 	{}
 
-	virtual void search() override
+	virtual bool search() override
 	{
 		chunk_generator<bf_t> gen(*this->pBF);
 
@@ -99,6 +102,8 @@ public:
 			found = (*this->pBF)(cur_chunk.key_length, cur_chunk.first, cur_chunk.last, this->correctKey);
 			cout << "Processed " << cur_chunk << " (res=" << found << ")" << std::endl;
 		}while(!found);
+
+		return true;
 	}
 };
 
@@ -124,7 +129,7 @@ public:
 		auto end_tp = std::chrono::system_clock::now();
 
 		std::chrono::duration<double> diff = end_tp - start_tp;
-		cout << "Key found: " << this->correctKey << "(" << diff.count() << " sec)" << std::endl;
+		cout << "Key found: " << this->correctKey << " (" << diff.count() << " sec)" << std::endl;
 	}
 
 	void submit_next_chunk()
