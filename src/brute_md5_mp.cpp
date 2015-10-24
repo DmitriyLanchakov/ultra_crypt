@@ -25,8 +25,8 @@ int main(int argc, char ** argv)
 
 	std::atomic<unsigned> val(0);
 
-	std::string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_";
-	bf_t bforcer("b781cbb29054db12f88f08c6e161c199", alphabet);
+	std::string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_"; //"b781cbb29054db12f88f08c6e161c199"
+	bf_t bforcer(md5("grape_p12"), alphabet);
 
 	openmp_engine<bf_t> eng(bforcer);
 	eng();

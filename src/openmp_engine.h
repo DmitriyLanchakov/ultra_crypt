@@ -23,7 +23,7 @@ public:
 
 		std::atomic<bool> found(false);
 #pragma omp parallel
-		cout << "Starting OPENMP parallel search (" << omp_get_num_threads() << " threads)" << std::endl;
+		cout << "Starting OPENMP thread " << omp_get_thread_num() << " (total " << omp_get_num_threads() << " threads)" << std::endl;
 		do
 		{
 			typename bf_t::key_t found_key;
