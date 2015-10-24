@@ -24,9 +24,10 @@ public:
 
 		std::atomic<bool> found(false);
 #pragma omp parallel
-		typename bf_t::key_t found_key;
 		do
 		{
+			typename bf_t::key_t found_key;
+
 			auto cur_chunk = gen.next_chunk();
 			bool r = (*this->pBF)(cur_chunk.key_length, cur_chunk.first, cur_chunk.last, found_key);
 			cout << "Thread " << omp_get_thread_num() << ": processed " << cur_chunk << " (res=" << r << ")" << std::endl;
@@ -35,7 +36,7 @@ public:
 				found.store(true);
 				this->correctKey = found_key;
 			}
-		}while(!found.load());
+		} while(!found.load());
 	}
 };
 
