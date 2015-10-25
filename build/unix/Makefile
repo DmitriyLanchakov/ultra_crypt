@@ -7,8 +7,15 @@ INCLUDES = -I$(SRC_DIR)aircrack/ -I$(SRC_DIR)aircrack/include -I/opt/local/inclu
 CXX = g++
 CC = gcc
 MPICC = mpic++
-CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread -arch x86_64 $(INCLUDES)
-CCFLAGS = -Wall -g -lstdc++ -O3 $(INCLUDES) -arch x86_64
+CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread $(INCLUDES)
+CCFLAGS = -Wall -g -lstdc++ -O3 $(INCLUDES)
+
+UNAME_S = $(shell uname -s)
+ifneq ($(UNAME_S), Darwin)
+	CCFLAGS += -arch x86_64
+	CFLAGS += -arch x86_64
+endif
+
 CFLAGS_MP = $(CFLAGS) -fopenmp -lgomp
 
 SRC_TEST = $(SRC_DIR)main.cpp
@@ -32,6 +39,7 @@ WPA_BIN = brute_wpa2
 
 all:	$(TESTS_BIN) $(WPA_BIN) $(BRUTE_MD5_BIN) $(BRUTE_MD5_MP_BIN)
 	@echo  Simple compiler named mycc has been compiled
+	@echo $(UNAME_S)
 	./$(BIN_DIR)$(TESTS_BIN)
 
 $(TESTS_BIN): $(OBJS_TEST) 
