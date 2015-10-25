@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 class big_uint
 {
