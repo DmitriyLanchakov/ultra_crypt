@@ -26,19 +26,10 @@ int main(int argc, char ** argv)
 	std::atomic<unsigned> val(0);
 
 	std::string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_"; //"b781cbb29054db12f88f08c6e161c199"
-	bf_t bforcer(md5("grape_p12"), alphabet);
+	bf_t bforcer(md5_crypter(), md5("grape_p12"), alphabet);
 
 	openmp_engine<bf_t> eng(bforcer);
 	eng();
-/*
-#pragma omp parallel
-
-	for(unsigned i = 0; i < 10; ++i)
-	{
-		cout << "thread " << omp_get_thread_num() << '/' << omp_get_num_threads() << ":" << val++ << std::endl;
-	}
-	*/
-
 
 	return 0;
 }

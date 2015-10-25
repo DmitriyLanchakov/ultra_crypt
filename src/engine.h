@@ -55,15 +55,16 @@ class bf_engine_base
 {
 public:
 	using bf_t = B;
+	using uint_t = typename bf_t::uint_t;
 
 	bf_engine_base(bf_t * p_bf)
 		:pBF(p_bf)
 	{}
 
-	void operator()()
+	void operator()(uint_t first_key = 0)
 	{
 		auto start_tp = std::chrono::system_clock::now();
-		bool r = search();
+		bool r = search(first_key);
 		auto end_tp = std::chrono::system_clock::now();
 
 		if(r)
@@ -73,7 +74,7 @@ public:
 		}
 	}
 
-	virtual bool search() = 0;
+	virtual bool search(uint_t first_key) = 0;
 
 	typename B::key_t correctKey;
 	bf_t * pBF;
@@ -85,12 +86,13 @@ class serial_engine : public bf_engine_base<B>
 public:
 	using bf_t = B;
 	using _Base = bf_engine_base<B>;
+	using uint_t = typename _Base::uint_t;
 
 	serial_engine(bf_t & p_bf)
 		:_Base(&p_bf)
 	{}
 
-	virtual bool search() override
+	virtual bool search(uint_t first_key) override
 	{
 		chunk_generator<bf_t> gen(*this->pBF);
 

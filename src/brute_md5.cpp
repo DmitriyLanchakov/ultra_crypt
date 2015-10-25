@@ -22,7 +22,7 @@ using bf_t = brute_forcer<md5_crypter>;
 int main(int argc, char ** argv)
 {
 	std::string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789_";
-	bf_t bforcer("b781cbb29054db12f88f08c6e161c199", alphabet);
+	bf_t bforcer(md5_crypter(), "b781cbb29054db12f88f08c6e161c199", alphabet);
 	linear_brute_force(bforcer);
 	return 0;
 }
