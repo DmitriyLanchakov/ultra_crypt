@@ -2,12 +2,12 @@
 PROJECT_ROOT = ../../
 SRC_DIR = $(PROJECT_ROOT)src/
 BIN_DIR = $(PROJECT_ROOT)bin/
-INCLUDES = -I$(SRC_DIR)aircrack/ -I$(SRC_DIR)aircrack/include -I/opt/local/include
+INCLUDES = -I$(SRC_DIR)aircrack/ -I$(SRC_DIR)aircrack/include -I/opt/local/include -I$(PROJECT_ROOT)include
 
 CXX = g++
 CC = gcc
 MPICC = mpic++
-CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread -arch x86_64
+CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread -arch x86_64 $(INCLUDES)
 CCFLAGS = -Wall -g -lstdc++ -O3 $(INCLUDES) -arch x86_64
 CFLAGS_MP = $(CFLAGS) -fopenmp -lgomp
 

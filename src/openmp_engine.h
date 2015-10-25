@@ -95,6 +95,8 @@ public:
 
 		chunk_generator<bf_t> gen(*this->pBF, start_key, this->chunkSize);
 
+		auto first_key = gen.cur_idx;
+
 		MPI::Status status;
 
 		std::map<unsigned, pending_chunk_t> pendingChunks;
@@ -129,10 +131,11 @@ public:
 				if(something_removed)
 				{
 					auto now_tp = std::chrono::system_clock::now();
-					auto keys_done = pendingChunks.begin()->second.firstKey;
+					auto last_key = pendingChunks.begin()->second.firstKey;
+					auto keys_done = last_key - first_key;
 					std::chrono::duration<double> diff = now_tp - start_tp;
 					
-					cout << "Last key #" << big_uint(keys_done) << " (" << _Base::pBF->get_ekey(keys_done) << "), speed " << keys_done / diff.count() << " keys/sec" << std::endl;
+					cout << "Last key #" << big_uint(last_key) << " (" << _Base::pBF->get_ekey(last_key) << "), speed " << keys_done / diff.count() << " keys/sec" << std::endl;
 				}
 			}
 
