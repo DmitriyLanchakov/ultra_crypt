@@ -11,7 +11,7 @@ CFLAGS = -Wall -g -lstdc++ -std=c++11 -O3 -pthread $(INCLUDES)
 CCFLAGS = -Wall -g -lstdc++ -O3 $(INCLUDES)
 
 UNAME_S = $(shell uname -s)
-ifneq ($(UNAME_S), Darwin)
+ifeq ($(UNAME_S), Darwin)
 	CCFLAGS += -arch x86_64
 	CFLAGS += -arch x86_64
 endif
