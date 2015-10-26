@@ -129,21 +129,6 @@ public:
 
 	unsigned key_length(key_id_t key_id) const
 	{
-
-		/*
-		{
-			double approx_len = log(double(key_id) * (radix - 1) / radix + 1) / log(double(radix));
-			unsigned len = static_cast<unsigned>(ceil(approx_len));
-
-			cout << "key_id=" << big_uint(key_id) << ", approx_len=" << approx_len << ", len=" << len << ", total_k(len-1)=" << big_uint(total_keys_including_length(len - 1)) << ", total_k(len)=" << big_uint(total_keys_including_length(len)) << std::endl;
-
-			if()
-				return len;
-			else
-				return len - 1;
-		}
-		*/
-
 		if(key_id == 0)
 			return 1;
 		else
@@ -223,7 +208,7 @@ public:
 		:key_manager(_alphabet), checker(_checker), correctVal(val)
 	{}
 
-	bool operator()(unsigned key_length, uint_t first, uint_t last, key_t & correctKey) const
+	bool operator()(unsigned key_length, uint_t first, uint_t last, uint_t & correctKeyId) const
 	{
 		internal_key_t cur_key = get_ikey(first);
 		//cur_key.resize(key_length, 0);
@@ -235,11 +220,8 @@ public:
 			to_alpha_key(cur_key, str_key);
 
 			//std::cout << "Checking key: " << str_key << std::endl;
-			if(checker(str_key) == correctVal)
-			{
-				correctKey = str_key;
+			if(checker(first, str_key, correctVal, correctKeyId))
 				return true;
-			}
 
 			next_key(cur_key);
 			++first;
@@ -298,7 +280,8 @@ struct chunk_generator
 		:bf(_bf), cur_length(1), cur_idx(start_key), chunkId(1), cur_count(0), maxChunkSize(max_chunk_size)
 	{
 		cur_length = bf.key_length(cur_idx);
-		cur_count = bf.total_keys_including_length(cur_length) - start_key;
+		cur_count = start_key - bf.total_keys_including_length(cur_length - 1);
+
 		cout << "Creating chunk gen cur_length=" << cur_length << ", (key_id=" << big_uint(start_key) << ", first_key=" << bf.get_ekey(cur_idx) << ", cur_count=" << big_uint(cur_count) << ")" << std::endl;
 
 	}
@@ -308,6 +291,8 @@ struct chunk_generator
 		std::lock_guard<std::mutex> grd(mtx);
 
 		const uint_t key_count = bf.keys_of_length(cur_length);
+
+		//cout << "length=" << big_uint(cur_length) << ", cur_count=" << big_uint(cur_count) << ", key_count=" << big_uint(key_count) << std::endl;
 		
 		uint_t chunk_size = min(key_count - cur_count, maxChunkSize);
 		
@@ -320,7 +305,7 @@ struct chunk_generator
 		cur_count += chunk_size;
 		cur_idx += chunk_size;
  
-		//cout << "length=" << cur_length << ", cur_count=" << cur_count << ", key_count=" << key_count << std::endl;
+
 		if(cur_count == key_count)
 			++cur_length;
 

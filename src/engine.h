@@ -29,7 +29,7 @@ void linear_brute_force(const B & bforcer)
 	chunk_generator<B> gen(bforcer);
 
 	auto start_tp = std::chrono::system_clock::now();
-
+/*
 	bool found = false;
 	do
 	{
@@ -45,7 +45,7 @@ void linear_brute_force(const B & bforcer)
 
 	std::chrono::duration<double> diff = end_tp - start_tp;
 	cout << "Key found: " << correct_key << "(" << diff.count() << " sec)" << std::endl;
-
+*/
 	monitor_thread.join();
 }
 

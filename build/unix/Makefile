@@ -22,6 +22,7 @@ SRC_TEST = $(SRC_DIR)main.cpp
 SRC_MD5 = $(SRC_DIR)brute_md5.cpp $(SRC_DIR)md5.cpp
 SRC_MD5_MP = $(SRC_DIR)brute_md5_mp.cxx $(SRC_DIR)md5.cpp
 
+
 AIRCRACK_DIR = $(PROJECT_ROOT)src/aircrack/
 SRC_AIRCRACK = $(AIRCRACK_DIR)crypto.c $(AIRCRACK_DIR)aircrack-ptw-lib.c
 
@@ -53,8 +54,9 @@ $(BRUTE_MD5_MP_BIN): $(SRC_DIR)md5_mp.o
 	$(MPICC) $(CFLAGS) -o $(BIN_DIR)$(BRUTE_MD5_MP_BIN) $(SRC_DIR)brute_md5_mp.o $(SRC_DIR)md5.o
 
 $(WPA_BIN): $(OBJS_AIRCRACK)
+	$(CC) $(CCFLAGS) -c $(SRC_DIR)/aircrack/sha1-sse2.S -o sha1-sse2.o
 	$(MPICC) $(CFLAGS) -c $(SRC_DIR)brute_wpa2.cpp -o $(SRC_DIR)brute_wpa2.o
-	$(MPICC) $(CFLAGS) -o $(BIN_DIR)$(WPA_BIN) $(OBJS_AIRCRACK) $(SRC_DIR)brute_wpa2.o -lcrypto 
+	$(MPICC) $(CFLAGS) -o $(BIN_DIR)$(WPA_BIN) $(OBJS_AIRCRACK) $(SRC_DIR)brute_wpa2.o sha1-sse2.o -lcrypto 
 
 $(SRC_DIR)md5_mp.o:
 	$(MPICC) $(CFLAGS) -c $(SRC_DIR)md5.cpp  -o md5_mp.o:

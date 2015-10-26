@@ -41,7 +41,7 @@ SURVEY_TEST(big_int)
 		SURVEY_TEST_EQ(to_string(big_uint(hex_uint)), hex_uint);
 	}
 	
-	cout << big_uint("0a85918ae8838727c5551") << std::endl;
+	//cout << big_uint("0a85918ae8838727c5551") << std::endl;
 
 }
 

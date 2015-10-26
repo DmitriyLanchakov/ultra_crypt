@@ -9,6 +9,7 @@ extern "C"
 {
 	#include "aircrack/crypto.h"
 	#include "aircrack/include/eapol.h"
+	#include "aircrack/sha1-sse2.h"
 }
 
 void print_binary_buffer(const unsigned char * buffer, unsigned size)
@@ -29,9 +30,15 @@ struct wpa2_crypter
 	using value_t = bool;
 
 	wpa2_crypter(const ap_data_t & ap_data)
-		:apData(ap_data)
+		:apData(ap_data), localId(0)
 	{
-		memset(key, 0, 128);
+		if(shasse2_cpuid() < 2)
+		{
+			throw std::runtime_error("SSHE not supported");
+		}
+
+		for(unsigned i = 0; i < 4; ++i)
+			memset(cache[i].key, 0, 128);
 
 		/* pre-compute the key expansion buffer */
 		memcpy( pke, "Pairwise key expansion", 23 );
@@ -53,46 +60,56 @@ struct wpa2_crypter
 		//print_binary_buffer(pke, 100);
 	}
 	
-	value_t operator()(const std::string & code) const
+	value_t operator()(typename key_manager::key_id_t cur_id, const std::string & code, bool , typename key_manager::key_id_t & correctId) const
 	{
-		memcpy(key, code.data(), code.size());
+		cache[localId].key_id = cur_id;
+		memcpy(cache[localId].key, code.data(), code.size());
+		++localId;
 
-		
-
-		//cout << "Calculating PMK..." << std::endl;
-
-		calc_pmk(key, apData.essid, tmp.pmk);
-
-		/*print_binary_buffer((unsigned char*)key, 128);
-		cout << std::endl;
-		print_binary_buffer((unsigned char*)essid, 36);
-		cout << std::endl;
-		print_binary_buffer((unsigned char*)pmk, 128);*/
-
-		for (unsigned i = 0; i < 4; i++)
+		if(localId == 4)
 		{
-			pke[99] = i;
-			HMAC(EVP_sha1(), tmp.pmk, 32, pke, 100, tmp.ptk + i * 20, NULL);
+			//calc_pmk(key, apData.essid, tmp.pmk);
+			calc_4pmk((char*)cache[0].key, (char*)cache[1].key, (char*)cache[2].key, (char*)cache[3].key, (char*)apData.essid, cache[0].pmk, cache[1].pmk, cache[2].pmk, cache[3].pmk);
+
+			for(unsigned j = 0; j < localId; ++j)
+			{
+				for (unsigned i = 0; i < 4; i++)
+				{
+					pke[99] = i;
+					HMAC(EVP_sha1(), cache[j].pmk, 32, pke, 100, cache[j].ptk + i * 20, NULL);
+				}
+
+				HMAC(EVP_sha1(), cache[j].ptk, 16, apData.hs.eapol, apData.hs.eapol_size, cache[j].mic, NULL);
+
+				if(memcmp(cache[j].mic, apData.hs.keymic, 16) == 0)
+				{
+					correctId = cur_id;
+					return true;
+				}
+			}
+
+			localId = 0;
 		}
-
-		//print_binary_buffer((unsigned char*)ptk, 80);
-
-		HMAC(EVP_sha1(), tmp.ptk, 16, apData.hs.eapol, apData.hs.eapol_size, tmp.mic, NULL);
-
-		//cout << std::endl << "res=" <<  << std::endl;
-
-		return (memcmp(tmp.mic, apData.hs.keymic, 16) == 0);
+		
+		return false;
 	}
 
-	mutable unsigned char pke[100];
-	mutable char key[128];
 
-	mutable struct
+	mutable unsigned char pke[100];
+	
+
+	struct cache_t
 	{
+		mutable char key[128];
 		unsigned char pmk[128];
 		unsigned char ptk[80];
 		unsigned char mic[20];
-	} tmp;
+
+		typename key_manager::key_id_t key_id;
+	};
+
+	mutable cache_t cache[4];
+	mutable unsigned localId;
 
 	ap_data_t apData;
 };
@@ -101,40 +118,46 @@ struct wpa2_crypter
 using bf_t = brute_forcer<wpa2_crypter>;
 
 
+void parse_params(int argc, char ** argv, std::map<std::string, std::string> & labeled_params, std::vector<std::string> & unlabeled_params)
+{
+	unsigned i = 1;
+	while(i < argc)
+	{
+		std::string cur_param(argv[i]);
+
+		//cout << "X:" << *cur_param.begin() << std::endl;
+		if(*cur_param.begin() == '-')
+		{
+			labeled_params.insert(make_pair(cur_param.substr(1, cur_param.size() - 1), std::string(argv[i + 1])));
+			i += 2;
+		}
+		else
+			unlabeled_params.push_back(std::string(argv[i++]));
+	}
+}
+
 int main(int argc, char ** argv)
 {
-	/*CmdLine cmd("WPA bruteforcer", ' ', "1.0");
-	cmd.setExceptionHandling(false);
+	std::map<std::string, std::string> labeled_params;
+	std::vector<std::string> unlabeled_params;
 
-	ValueArg<string> file_name_arg("h", "hs", "Handshake data file", false, "data.hshk", "string");
-	cmd.add(file_name_arg);
+	parse_params(argc, argv, labeled_params, unlabeled_params);
 
-	ValueArg<string> alphabet_arg("a", "al", "Alphabet", false, "abcdefghijklmnopqrstuvwxyz0123456789_'", "string");
-	cmd.add(alphabet_arg);
+	cout << "Starting: with params" << std::endl;
+	for(auto & el : labeled_params)
+		cout << el.first << "=>" << el.second << std::endl;
 
-	ValueArg<string> first_key_arg("f", "fk", "First key", false, "0", "string");
-	cmd.add(first_key_arg);
+	for(auto & el : unlabeled_params)
+		cout << el << std::endl;
 
-	try
+	if(unlabeled_params.empty())
 	{
-		cmd.parse(argc, argv);
-	}
-	catch(ArgException & e)
-	{
-		cout << "Invalid input params" << std::endl;
-		cout << e.what();
-		return 1;
-	}*/
-
-	if(argc < 4)
-	{
-		cout << "Needs 3 params" << std::endl;
+		cout << "Specify handshake data file" << std::endl;
 		return 1;
 	}
-
-
-
-	std::string file_name(argv[1]);
+	
+	std::string file_name = unlabeled_params[0];
+	//(argv[1]);
 	FILE * tmpFile = fopen(file_name.c_str(), "rb");
 	if(!tmpFile)
 	{
@@ -149,14 +172,47 @@ int main(int argc, char ** argv)
 	fclose(tmpFile);
 
 	wpa2_crypter crypter(ap_data);
-	std::string alphabet(argv[2]);
+
+	std::string alphabet;
+
+	if(labeled_params.find("a") == labeled_params.end())
+	{
+		alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'";//
+		cout << "Alphabet not specified, using full: " << alphabet << std::endl;
+	}
+	else
+		alphabet = labeled_params["a"];
+	
 	bf_t bforcer(crypter, true, alphabet);
 
-	std::string skey(argv[3]);
-	big_uint start_key_id(skey);
+	big_uint start_key_id(0);
+
+	if(labeled_params.find("l") != labeled_params.end())
+	{
+		unsigned start_len = atoi(labeled_params["l"].c_str());
+		start_len = max(8U, start_len);
+		start_key_id = bforcer.total_keys_including_length(start_len - 1);
+	}
+	else if(labeled_params.find("i") != labeled_params.end())
+	{
+		start_key_id = big_uint(labeled_params["i"]);
+	}
+	else if(labeled_params.find("k") != labeled_params.end())
+	{
+		start_key_id = bforcer.get_key_id(labeled_params["k"]);
+	}
+	else
+		cout << "Starting key not specified, starting from 0" << std::endl;
 
 	openmp_engine<bf_t> eng(bforcer);
-	eng.chunkSize = 400;
+
+	if(labeled_params.find("c") != labeled_params.end())
+	{
+		eng.chunkSize = atoi(labeled_params["c"].c_str());
+	}
+	else
+		eng.chunkSize = 1000;	
+	
 	eng(start_key_id.data);
 
 	return 0;

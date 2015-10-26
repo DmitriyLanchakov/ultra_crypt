@@ -9,9 +9,15 @@ struct md5_crypter
 {
 	using value_t = std::string;
 	
-	value_t operator()(const std::string & code) const
+	bool operator()(typename key_manager::key_id_t cur_id, const std::string & code, const std::string & correct_res, typename key_manager::key_id_t & correctId) const
 	{
-		return md5(code);
+		if(md5(code) == correct_res)
+		{
+			correctId = cur_id;
+			return true;
+		}
+		else
+			return false;
 	}
 };
 
